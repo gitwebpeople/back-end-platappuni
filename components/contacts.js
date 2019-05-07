@@ -19,7 +19,7 @@ module.exports = app => {
   };
 
   const registerNewContact = async (req, res) => {
-    const data = req.body || null;
+    const data = req.body.payload || null;
     const user = jwt.decode(
       req.get("Authorization").replace("bearer ", ""),
       authSecret
@@ -38,7 +38,7 @@ module.exports = app => {
 
     const telefone = await app
       .db("contacts")
-      .where({ cnpjcpf, telefone: req.body.telefone })
+      .where({ cnpjcpf, telefone: req.body.payload.telefone })
       .first();
     console.log(telefone);
     if (telefone)
@@ -46,7 +46,7 @@ module.exports = app => {
 
     const email = await app
       .db("contacts")
-      .where({ cnpjcpf, contact: req.body.email })
+      .where({ cnpjcpf, contact: req.body.payload.email })
       .first();
     if (email) return res.status(400).send("Você já cadastrou este email.");
 
@@ -86,7 +86,7 @@ module.exports = app => {
   };
 
   const updateContact = async (req, res) => {
-    const data = req.body || null;
+    const data = req.body.payload || null;
     // const token = jwt.decode(
     //   req.get("Authorization").replace("bearer", ""),
     //   authSecret

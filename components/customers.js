@@ -56,7 +56,7 @@ module.exports = app => {
       logradouro, numero, complemento, cep, state, city, type (tipo de logradouro: rua, avenida...)
     */
   const registerCustomer = async (req, res) => {
-    const data = req.body;
+    const data = req.body.payload;
 
     if (data.cnpjcpf.length == 18) {
       if (!validarCNPJ(data.cnpjcpf))
@@ -137,16 +137,16 @@ module.exports = app => {
   };
 
   const login = async (req, res) => {
-    if (!req.body.cnpjcpf || !req.body.password) {
+    if (!req.body.payload.cnpjcpf || !req.body.payload.password) {
       return res.status(400).send("Informe usuário e senha!");
     }
 
-    if (req.body.cnpjcpf.length == 18) {
-      if (!validarCNPJ(req.body.cnpjcpf)) {
+    if (req.body.payload.cnpjcpf.length == 18) {
+      if (!validarCNPJ(req.body.payload.cnpjcpf)) {
         return res.status(400).send("O CNPJ especificado é inválido.");
       }
-    } else if (req.body.cnpjcpf.length == 14) {
-      if (!validateCPF(req.body.cnpjcpf)) {
+    } else if (req.body.payload.cnpjcpf.length == 14) {
+      if (!validateCPF(req.body.payload.cnpjcpf)) {
         return res.status(400).send("O CPF especificado é inválido.");
       }
     }
@@ -158,12 +158,12 @@ module.exports = app => {
 
     const user = await app
       .db("customers")
-      .where({ cnpjcpf: req.body.cnpjcpf })
+      .where({ cnpjcpf: req.body.payload.cnpjcpf })
       .first();
 
     if (!user) return res.status(400).send("Usuário não encontrado!");
 
-    // const isMatch = bcrypt.compareSync(req.body.password, user.password);
+    // const isMatch = bcrypt.compareSync(req.body.payload.password, user.password);
     // if (!isMatch) return res.status(401).send("Email/Senha inválidos!");
 
     const now = Math.floor(Date.now() / 1000);
@@ -189,7 +189,7 @@ module.exports = app => {
         function(done) {
           app
             .db("customers")
-            .where({ cnpjcpf: req.body.cnpjcpf })
+            .where({ cnpjcpf: req.body.payload.cnpjcpf })
             .then(_ => {
               done(null, _[0]);
             })
@@ -265,24 +265,24 @@ module.exports = app => {
   async function resetPassword(req, res) {
 
     try {
-      existsOrError(req.body.newPassword, "Você precisa digitar uma senha nova.")
-      existsOrError(req.body.verifyPassword, "Você precisa confirmar a sua nova senha.");
+      existsOrError(req.body.payload.newPassword, "Você precisa digitar uma senha nova.")
+      existsOrError(req.body.payload.verifyPassword, "Você precisa confirmar a sua nova senha.");
     } catch(msg) {
       return res.status(400).send(msg);
     }
 
     const result = await app.db("customers").where({
-      reset_password_token: req.body.token
+      reset_password_token: req.body.payload.token
     });
 
     if (new Date(result[0].reset_password_expires * 1000) > new Date()) {
       // return res.send(false);
-      if (req.body.newPassword === req.body.verifyPassword) {
-        const password = encryptPassword(req.body.newPassword);
+      if (req.body.payload.newPassword === req.body.payload.verifyPassword) {
+        const password = encryptPassword(req.body.payload.newPassword);
         app
           .db("customers")
           .where({
-            reset_password_token: req.body.token
+            reset_password_token: req.body.payload.token
           })
           .update({
             reset_password_token: null,
@@ -325,7 +325,7 @@ module.exports = app => {
       req.get("Authorization").replace("bearer ", ""),
       authSecret
     );
-    const body = req.body || null;
+    const body = req.body.payload || null;
 
     try {
       existsOrError(body.nome, "Você não informou o nome da conta");
