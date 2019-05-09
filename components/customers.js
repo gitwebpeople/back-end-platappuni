@@ -57,6 +57,25 @@ module.exports = app => {
     */
   const registerCustomer = async (req, res) => {
     const data = req.body.payload;
+    console.log('====================================');
+    console.log(req.body);
+    console.log('====================================');
+
+    try {
+      existsOrError(data.cnpjcpf, "Você não informou o CNPJ/CPF")
+      existsOrError(data.nameAccount, `Você não informou ${nameAccount}`);
+      isPj
+        ? existsOrError(data.responsavel, "Você não informou o responsável")
+        : "";
+      existsOrError(data.logradouro, "Você não informou o logradouro.");
+      existsOrError(data.numero, "Você não informou o número do logradouro.");
+      existsOrError(data.cep, "Você não informou o CEP.");
+      existsOrError(data.state, "Você não informou o estado.");
+      existsOrError(data.city, "Você não informou a cidade.");
+      existsOrError(data.type, "Você não informou o tipo de logradouro.");
+    } catch (msg) {
+      return res.status(400).send(msg);
+    }
 
     if (data.cnpjcpf.length == 18) {
       if (!validarCNPJ(data.cnpjcpf))
@@ -79,20 +98,7 @@ module.exports = app => {
       nameAccount = "sua razão social.";
     }
 
-    try {
-      existsOrError(data.nameAccount, `Você não informou ${nameAccount}`);
-      isPj
-        ? existsOrError(data.responsavel, "Você não informou o responsável")
-        : "";
-      existsOrError(data.logradouro, "Você não informou o logradouro.");
-      existsOrError(data.numero, "Você não informou o número do logradouro.");
-      existsOrError(data.cep, "Você não informou o CEP.");
-      existsOrError(data.state, "Você não informou o estado.");
-      existsOrError(data.city, "Você não informou a cidade.");
-      existsOrError(data.type, "Você não informou o tipo de logradouro.");
-    } catch (msg) {
-      return res.status(400).send(msg);
-    }
+   
 
     const customer = await app.db("customers").where({ cnpjcpf: data.cnpjcpf });
     console.log(customer);
@@ -137,6 +143,7 @@ module.exports = app => {
   };
 
   const login = async (req, res) => {
+    console.log(req.body)
     if (!req.body.payload.cnpjcpf || !req.body.payload.password) {
       return res.status(400).send("Informe usuário e senha!");
     }
