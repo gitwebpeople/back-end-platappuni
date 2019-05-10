@@ -191,6 +191,9 @@ module.exports = app => {
   };
 
   function forgotPassword(req, res) {
+    console.log('====================================');
+    console.log(req.body);
+    console.log('====================================');
     async.waterfall(
       [
         function(done) {
@@ -348,9 +351,9 @@ module.exports = app => {
       return res.status(400).send(msg)
     }
 
-    const user = await app.db.select('email').from('customers').where({ id: user.id });
+    const email = await app.db.select('email').from('customers').where({ id: user.id });
 
-    if(user) return res.status(400).send("Este e-mail já está sendo usado por outro usuário");
+    if(email) return res.status(400).send("Este e-mail já está sendo usado por outro usuário");
 
     app
       .db("customers")

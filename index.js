@@ -12,6 +12,8 @@ app.db = db;
 consign()
   .then("./config/middleware.js")
   .include("./config/passport.js")
+  .then("./cron/scan/ticket.js")
+  .then("./cron/cron.js")
   .then("./components/validation.js")
   .then("./components/customers.js")
   .then("./components/contacts.js")
@@ -21,3 +23,5 @@ consign()
 http.listen(port, () => {
   console.log("iniciando servidor backend..." + port);
 });
+
+app.cron.cron.startJobGenerateTickets();
