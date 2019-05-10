@@ -63,6 +63,7 @@ module.exports = app => {
 
     try {
       existsOrError(data.cnpjcpf, "Você não informou o CNPJ/CPF")
+      existsOrError(data.email, "Você não informou o e-mail")
       existsOrError(data.nameAccount, `Você não informou ${nameAccount}`);
       isPj
         ? existsOrError(data.responsavel, "Você não informou o responsável")
@@ -97,9 +98,6 @@ module.exports = app => {
       isPj = true;
       nameAccount = "sua razão social.";
     }
-
-   
-
     const customer = await app.db("customers").where({ cnpjcpf: data.cnpjcpf });
     console.log(customer);
     if (customer.length > 0)
@@ -127,7 +125,8 @@ module.exports = app => {
       comercial2: data.comercial2,
       celular: data.celular,
       celular2: data.celular2,
-      password
+      password,
+      email: data.email
     };
 
     await app
@@ -179,6 +178,7 @@ module.exports = app => {
       id: user.id,
       cnpjcpf: user.cnpjcpf,
       nick: user.nick,
+      email: user.email,
       iat: now,
       exp: now + 60 * 60 * 24 * 365
       // exp: now + 1
@@ -335,6 +335,7 @@ module.exports = app => {
     const body = req.body.payload || null;
 
     try {
+      existsOrError(body.email, "Você não informou um e-mail principal")
       existsOrError(body.nome, "Você não informou o nome da conta");
       existsOrError(body.logradouro, "você não informou o logradouro")
       existsOrError(body.numero, "Você não informou o número")
@@ -346,6 +347,10 @@ module.exports = app => {
     } catch(msg) {
       return res.status(400).send(msg)
     }
+
+    const user = await app.db.select('email').from('customers').where({ id: user.id });
+
+    if(user) return res.status(400).send("Este e-mail já está sendo usado por outro usuário");
 
     app
       .db("customers")
@@ -364,7 +369,8 @@ module.exports = app => {
         comercial2: body.comercial2,
         celular: body.celular,
         celular2: body.celular2,
-        complement: body.complemento
+        complement: body.complemento,
+        email: body.email
       })
       .then(_ => {
         return res.sendStatus(200);
