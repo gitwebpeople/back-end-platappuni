@@ -385,12 +385,23 @@ module.exports = app => {
     return res.json(customer);
   };
 
+  const alreadyUpdatedData = async (req, res) => {
+    const user = jwt.decode(
+      req.get("Authorization").replace("bearer ", ""),
+      authSecret
+    );
+    const result = await app.db.select('updated_data').from('customers').where({ cnpjcpf: user.cnpjcpf });
+
+    return res.json(result);
+  }
+
   return {
     selectCustomerData,
     login,
     registerCustomer,
     forgotPassword,
     resetPassword,
-    updateCustomerData
+    updateCustomerData,
+    alreadyUpdatedData
   };
 };

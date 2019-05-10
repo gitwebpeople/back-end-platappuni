@@ -6,6 +6,7 @@ module.exports = app => {
     app.route("/registerCustomer").post(app.components.customers.registerCustomer);
     app.route("/fetchCustomerData").all(app.config.passport.authenticate()).get(app.components.customers.selectCustomerData)
     app.route("/updateCustomerData").all(app.config.passport.authenticate()).post(app.components.customers.updateCustomerData)
+    app.route("/alreadyUpdatedData").all(app.config.passport.authenticate()).get(app.components.customers.alreadyUpdatedData);
 
 
     //CONTACTS
