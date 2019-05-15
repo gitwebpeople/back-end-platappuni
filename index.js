@@ -12,6 +12,7 @@ app.db = db;
 consign()
   .then("./config/middleware.js")
   .include("./config/passport.js")
+  .then("./cron/scan/api_livre.js")
   .then("./cron/scan/ticket.js")
   .then("./cron/cron.js")
   .then("./components/validation.js")
