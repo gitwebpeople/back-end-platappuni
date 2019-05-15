@@ -14,4 +14,13 @@ module.exports = app => {
     app.route("/updateContact").all(app.config.passport.authenticate()).post(app.components.contacts.updateContact)
     app.route("/fetchContacts").all(app.config.passport.authenticate()).get(app.components.contacts.fetchContacts)
     app.route("/fetchContactsByType").all(app.config.passport.authenticate()).get(app.components.contacts.fetchContactsByType)
+
+
+    //TICKET'S
+    app.route("/fetchCustomerTickets").all(app.config.passport.authenticate()).get(app.components.ticket.index.getCustomerTickets);
+    app.route("/payTicket").all(app.config.passport.authenticate()).get(app.components.ticket.index.payTicket);
+
+    //CONFIG
+    app.route("/setGlobalConf").all(app.config.passport.authenticate()).post(app.cron.scan.api_livre.setGlobalConf);
+    app.route("/getGlobalConf").all(app.config.passport.authenticate()).get(app.cron.scan.api_livre.getGlobalConf)
 }

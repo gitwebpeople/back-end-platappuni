@@ -1,11 +1,31 @@
 const axios = require('axios');
-const qs = require('querystring')
+const qs = require('querystring');
+const fs = require('fs');
+const path = require('path')
+const globalConfigContentPath = path.resolve( __dirname, 'globalConf.json');
 
 module.exports = () => {
   const _URL = "http://ws1.api.livre.com.br/slip/slip";
   const USER_KEY = "eaa675a4-d3dd-4b2c-ae40-40d312ceb9f5";
 
+  function setGlobalConf(req, res){
+    const conf = req.body || null;
+     const confJson = JSON.stringify(conf);
+     const ret = fs.writeFileSync(globalConfigContentPath, confJson);
+     return res.status(200).send(ret);
+  }
+
+  function getGlobalConf(req, res) {
+    return res.json(ggc());
+  }
+  function ggc(){
+    const fileBuffer = fs.readFileSync(globalConfigContentPath, 'utf-8');
+    const confJson = JSON.parse(fileBuffer);
+    return confJson;
+  }
+
   async function getToken() {
+    const conf = ggc();
     const instance = axios.create({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -15,7 +35,7 @@ module.exports = () => {
 
     const data = qs.stringify({
       FMTOUT: "JSON",
-      USRKEY: USER_KEY
+      USRKEY: conf.api.USER_KEY
     });
 
     const response = await instance.post(_URL, data);
@@ -24,12 +44,13 @@ module.exports = () => {
   }
 
   async function generateTicket(token, SAC_DATA) {
+    const conf = ggc();
     const data = qs.stringify({
       FMTOUT: "JSON",
       USRKEY: USER_KEY,
       USRTOK: token,
       URLRET: "",
-      TIPBOL: "5",
+      TIPBOL: conf.api.TIPBOL,
       ...SAC_DATA
     });
 
@@ -40,7 +61,7 @@ module.exports = () => {
       }
     });
 
-    const response = await instance.post(_URL, data);
+    const response = await instance.post(conf.api.URL, data);
 
     return response.data
   }
@@ -48,6 +69,9 @@ module.exports = () => {
   return {
       getToken,
       generateTicket,
+      setGlobalConf,
+      getGlobalConf,
+      ggc,
       _URL,
       USER_KEY
   };

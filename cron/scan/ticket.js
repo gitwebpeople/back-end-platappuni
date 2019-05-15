@@ -2,15 +2,16 @@
 const moment = require("moment");
 module.exports = app => {
 
-  const { USER_KEY, generateTickets  } = app.cron.scan.api_livre;
+  const { USER_KEY, generateTickets, ggc  } = app.cron.scan.api_livre;
 
   async function fetchPayDates() {
+    const conf = ggc();
     let paydates = await app.db("ticket").where({ ticket_url: null });
 
     let customersWhoMustPay = [];
      paydates.map(e => {
       let m = []
-       for(let x = 0; x < 7; x++ ) {
+       for(let x = 0; x < conf.app.DATGENTICKET; x++ ) {
        m[x] = moment(new Date(e.paydate));
        m[x].subtract(x, "days");       
         if (moment().isSame(m[x], "day")) {
@@ -24,6 +25,7 @@ module.exports = app => {
   }
 
   async function generateTicketsForCustomers(customers) {
+    const conf = ggc();
     customers.forEach( async e => {
       const dataCustomer = await app.db.select(`
         customers.cnpjcpf`, `nameaccount`,
@@ -40,7 +42,7 @@ module.exports = app => {
       const pd = moment(e.paydate).format("DD-MM-YYYY");
       const SAC_DATA = {
         FMTOUT: "JSON",
-        USRKEY: USER_KEY,
+        USRKEY: conf.api.USER_KEY,
         NOMSAC: dataCustomer.nameaccount,
         SACMAL: dataCustomer.email,
         CODCEP: dataCustomer.cep,
@@ -58,7 +60,7 @@ module.exports = app => {
         CALMOD: "1",
         DATVCT: pd,
         VLRBOL: dataCustomer.baseval,
-        PCTJUR: "1",
+        PCTJUR: conf.api.PCTJUR,
         DATVAL: pd
       };
 
@@ -66,7 +68,7 @@ module.exports = app => {
       //  const ticket_param = await generateTicket(token, SAC_DATA);
       const ticket_param = '?vl=f703655c-5f66-40ff-8f4e-0b4dfbe63a60'
       await app.db('ticket')
-        .update({ ticket_url: `http://fatura2.livre.com.br/fatura${ticket_param}`})
+        .update({ ticket_url: `${conf.api.URLCONFAT}${ticket_param}`})
         .where({ cnpjcpf: dataCustomer.cnpjcpf })
         .then(_ => {
             console.log(_ );
