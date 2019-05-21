@@ -57,38 +57,23 @@ module.exports = app => {
     */
   const registerCustomer = async (req, res) => {
     const data = req.body.payload;
-    console.log('====================================');
-    console.log(req.body);
-    console.log('====================================');
-
     try {
       existsOrError(data.cnpjcpf, "Você não informou o CNPJ/CPF")
       existsOrError(data.email, "Você não informou o e-mail")
-      existsOrError(data.nameAccount, `Você não informou ${nameAccount}`);
-      isPj
-        ? existsOrError(data.responsavel, "Você não informou o responsável")
-        : "";
-      existsOrError(data.logradouro, "Você não informou o logradouro.");
-      existsOrError(data.numero, "Você não informou o número do logradouro.");
-      existsOrError(data.cep, "Você não informou o CEP.");
-      existsOrError(data.state, "Você não informou o estado.");
-      existsOrError(data.city, "Você não informou a cidade.");
-      existsOrError(data.type, "Você não informou o tipo de logradouro.");
-    } catch (msg) {
-      return res.status(400).send(msg);
-    }
+      existsOrError(data.nameAccount, `Você não informou um nome para a conta`);
 
-    if (data.cnpjcpf.length == 18) {
-      if (!validarCNPJ(data.cnpjcpf))
-        return res.status(400).send("O CNPJ informado é inválido.");
-      data.pjpf = "pj";
-    } else if (data.cnpjcpf.length == 14) {
-      if (!validateCPF(data.cnpjcpf))
-        return res.status(400).send("O CPF informado é inválido.");
-      data.pjpf = "pf";
-    } else {
-      return res.status(400).send("O documento informado é inválido.");
-    }
+
+      if (data.cnpjcpf.length == 18) {
+        if (!validarCNPJ(data.cnpjcpf))
+          throw("O CNPJ informado é inválido.");
+        data.pjpf = "pj";
+      } else if (data.cnpjcpf.length == 14) {
+        if (!validateCPF(data.cnpjcpf))
+        throw("O CPF informado é inválido.");
+        data.pjpf = "pf";
+      } else {
+        throw("O documento informado é inválido.");
+      }
 
     let nameAccount = "";
     let isPj = false;
@@ -98,8 +83,24 @@ module.exports = app => {
       isPj = true;
       nameAccount = "sua razão social.";
     }
+      isPj
+        ? existsOrError(data.responsavel, "Você não informou o responsável")
+        : "";
+      existsOrError(data.logradouro, "Você não informou o logradouro.");
+      existsOrError(data.numero, "Você não informou o número do logradouro.");
+      existsOrError(data.cep, "Você não informou o CEP.");
+      existsOrError(data.state, "Você não informou o estado.");
+      existsOrError(data.city, "Você não informou a cidade.");
+      existsOrError(data.type, "Você não informou o tipo de logradouro.");
+    } catch (msg) {      
+      return res.status(400).send(msg);
+    }
+
+   
+
+    
     const customer = await app.db("customers").where({ cnpjcpf: data.cnpjcpf });
-    console.log(customer);
+    
     if (customer.length > 0)
       return res.status(400).send("Já existe um usuário com este CNPJ");
 
@@ -191,9 +192,6 @@ module.exports = app => {
   };
 
   function forgotPassword(req, res) {
-    console.log('====================================');
-    console.log(req.body);
-    console.log('====================================');
     async.waterfall(
       [
         function(done) {
@@ -267,7 +265,7 @@ module.exports = app => {
       ],
       function(err) {
         console.log(err);
-        return res.status(422).json({ message: err });
+        return res.status(200).json({ message: err });
       }
     );
   }

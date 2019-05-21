@@ -9,8 +9,6 @@ module.exports = {
       port: ""
     }
   };
-
-
   // module.exports = {
   //   client: "postgresql",
   //   connection: {

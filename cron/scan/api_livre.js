@@ -5,9 +5,6 @@ const path = require('path')
 const globalConfigContentPath = path.resolve( __dirname, 'globalConf.json');
 
 module.exports = () => {
-  const _URL = "http://ws1.api.livre.com.br/slip/slip";
-  const USER_KEY = "eaa675a4-d3dd-4b2c-ae40-40d312ceb9f5";
-
   function setGlobalConf(req, res){
     const conf = req.body || null;
      const confJson = JSON.stringify(conf);
@@ -38,8 +35,7 @@ module.exports = () => {
       USRKEY: conf.api.USER_KEY
     });
 
-    const response = await instance.post(_URL, data);
-
+    const response = await instance.post(conf.api.URL, data);
     return response.data.usrtok;
   }
 
@@ -47,7 +43,7 @@ module.exports = () => {
     const conf = ggc();
     const data = qs.stringify({
       FMTOUT: "JSON",
-      USRKEY: USER_KEY,
+      USRKEY: conf.api.USER_KEY,
       USRTOK: token,
       URLRET: "",
       TIPBOL: conf.api.TIPBOL,
@@ -60,9 +56,7 @@ module.exports = () => {
         "accept-charset": "UTF-8"
       }
     });
-
     const response = await instance.post(conf.api.URL, data);
-
     return response.data
   }
 
@@ -71,8 +65,6 @@ module.exports = () => {
       generateTicket,
       setGlobalConf,
       getGlobalConf,
-      ggc,
-      _URL,
-      USER_KEY
+      ggc
   };
 };
