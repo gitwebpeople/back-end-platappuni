@@ -15,7 +15,7 @@ exports.up = function(knex, Promise) {
       table.double("payment_value");
       table.integer("id_bol");
       table.string("id_fat");
-      table.string('id_resquest');
+      table.string('id_request');
       table.timestamp("created_at").defaultTo(knex.fn.now());
       table.timestamp("update_at").defaultTo(knex.fn.now());
     });

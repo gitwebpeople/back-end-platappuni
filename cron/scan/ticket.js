@@ -6,7 +6,7 @@ module.exports = app => {
   async function fetchPayDates() {
     const conf = ggc();
     let paydates = await app.db("ticket").where({ generated: false });
-
+    
     let customersWhoMustPay = [];
     paydates.map(e => {
       let m = [];
@@ -50,7 +50,7 @@ module.exports = app => {
       const SAC_DATA = {
         FMTOUT: "JSON",
         USRKEY: conf.api.USER_KEY,
-        RSPTAR: "2", // RESPONSÁVEL PELA FATURA / 1 – Cedente ||  2 – Sacado
+        RSPTAR: "1", // RESPONSÁVEL PELA FATURA / 1 – Cedente ||  2 – Sacado
         ACPMAL: "0", //ENVIAR FATURA POR E-MAIL / 0 - NÃO || 1 -SIM /
         ACPSMS: "0", // ENVIAR FATURA POR SMS / 0 - NÃO || 1 - SIM /
         ALTCPG: "0", // AVISAR QUANDO PAGA
