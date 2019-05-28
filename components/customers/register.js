@@ -28,10 +28,10 @@ module.exports = app => {
       existsOrError(data.email, 'Você não informou o e-mail')
       existsOrError(data.nameAccount, `Você não informou um nome para a conta`)
 
-      if (data.cnpjcpf.length == 18) {
+      if (data.cnpjcpf.length == 14) {
         if (!validarCNPJ(data.cnpjcpf)) { throw ('O CNPJ informado é inválido.') }
         data.pjpf = 'pj'
-      } else if (data.cnpjcpf.length == 14) {
+      } else if (data.cnpjcpf.length == 11) {
         if (!validateCPF(data.cnpjcpf)) { throw ('O CPF informado é inválido.') }
         data.pjpf = 'pf'
       } else {
@@ -54,14 +54,18 @@ module.exports = app => {
       existsOrError(data.cep, 'Você não informou o CEP.')
       existsOrError(data.state, 'Você não informou o estado.')
       existsOrError(data.city, 'Você não informou a cidade.')
-      existsOrError(data.type, 'Você não informou o tipo de logradouro.')
+      //existsOrError(data.type, 'Você não informou o tipo de logradouro.')
     } catch (msg) {
       return res.status(400).send(msg)
     }
 
     const customer = await app.db('customers').where({ cnpjcpf: data.cnpjcpf })
 
-    if (customer.length > 0) { return res.status(400).send('Já existe um usuário com este CNPJ') }
+    if (customer.length > 0) { return res.status(400).send(`Já existe um usuário com este ${pjpf == 'pf' ? 'CPF' : 'CNPJ'}`) }
+
+    const customerEmail = await app.db('customers').where({ email: data.email})
+
+    if (customerEmail.length > 0) { return res.status(400).send('Já existe um usuário com este e-mail') }
 
     const d = new Date()
     const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
@@ -89,16 +93,18 @@ module.exports = app => {
       email: data.email
     }
 
-    await app
+    app
       .db('customers')
       .insert(dataInsert)
       .then(_ => {
+
         return res.status(200)
       })
       .catch(error => {
         console.log(error)
         return res.status(500).send(error)
       })
+
   }
   return {
     registerCustomer

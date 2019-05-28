@@ -49,11 +49,11 @@ module.exports = app => {
       return res.status(400).send('Informe usuário e senha!')
     }
 
-    if (req.body.payload.cnpjcpf.length == 18) {
+    if (req.body.payload.cnpjcpf.length == 14) {
       if (!validarCNPJ(req.body.payload.cnpjcpf)) {
         return res.status(400).send('O CNPJ especificado é inválido.')
       }
-    } else if (req.body.payload.cnpjcpf.length == 14) {
+    } else if (req.body.payload.cnpjcpf.length == 11) {
       if (!validateCPF(req.body.payload.cnpjcpf)) {
         return res.status(400).send('O CPF especificado é inválido.')
       }
