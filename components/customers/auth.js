@@ -36,7 +36,7 @@ module.exports = app => {
   var handlebarsOptions = {
     viewEngine: {
       extName: 'handlebars',
-      partialsDir: path.resolve('../templates/')
+      partialsDir: path.resolve('./templates/')
     },
     viewPath: path.resolve('./templates/'),
     extName: '.html'
@@ -81,15 +81,15 @@ module.exports = app => {
       // exp: now + 1
     }
 
-    try {
-      await registerUserLogActivity({ id: user.id, activity: 'login', ip: req.body.payload.ip, date: req.body.payload.logDate })
-      return res.json({
-        ...payload,
-        token: jwt.encode(payload, authSecret)
-      })
-    } catch (msg) {
-      return res.status(500).send(msg)
-    }
+      try {
+        await registerUserLogActivity({ id: user.id, activity: 'login', ip: req.body.payload.ip, date: req.body.payload.logDate })
+        return res.json({
+          ...payload,
+          token: jwt.encode(payload, authSecret)
+        })
+      } catch (msg) {
+        return res.status(500).send(msg)
+      }
   }
 
   function forgotPassword (req, res) {
@@ -100,10 +100,11 @@ module.exports = app => {
             .db('customers')
             .where({ cnpjcpf: req.body.payload.cnpjcpf })
             .then(_ => {
+              
               done(null, _[0])
             })
             .catch(err => {
-              console.log(err)
+              console.log("auth.js | line:107",err)
               return done('Usuário não encontrado.')
             })
         },
@@ -126,21 +127,21 @@ module.exports = app => {
             })
             .then(async _ => {
               const customer = await app.db('customers').where({ id: user.id })
-
+              
               done(null, token, customer[0])
             })
             .catch(err => {
+              console.log(" auth.js | line:134", customer[0])
               return done(err)
             })
           // User.findByIdAndUpdate({ _id: user._id }, { reset_password_token: token, reset_password_expires: Date.now() + 86400000 }, { upsert: true, new: true }).exec(function(err, new_user) {
           //   done(err, token, new_user);
           // });
         },
-        async function (token, user, done) {
+        function (token, user, done) {
           // const contact = await app.db.raw(
           //   `SELECT contact FROM contacts WHERE id_cliente = '${user.id}'`
-          // );
-
+          // );   
           var data = {
             to: 'gabriel.n64@hotmail.com',
             from: email,
@@ -151,23 +152,28 @@ module.exports = app => {
               name: user.nameaccount
             }
           }
+          
 
           smtpTransport.sendMail(data, function (err, info) {
-            console.log('auth||line:156', err)
-            console.log('auth||line:157', info)
-            if (!err) {
-              return res.json({
-                message: 'Kindly check your email for further instructions'
-              })
+            // console.log(err)
+            // if (!err) {
+            //   return res.json({
+            //     message: 'Kindly check your email for further instructions'
+            //   })
+            // } else {
+            //   done(err, token, user)
+            // }
+            if (err) {
+              console.log(err);
             } else {
-              done(err, token, user)
+              console.log('Email enviado: ' + info.response);
             }
           })
         }
       ],
       function (err) {
-        console.log('auth||line:169', err)
-        return res.status(200).json({ message: err })
+        console.log('auth||line:170', err)
+        return res.status(400).send(JSON.stringify(err))
       }
     )
   }
