@@ -1,52 +1,59 @@
-const jwt = require("jwt-simple");
-const { authSecret } = require("../../.env");
-const moment = require("moment");
+const jwt = require('jwt-simple')
+const { authSecret } = require('../../.env')
+const moment = require('moment')
 
 module.exports = app => {
+  async function getCustomerTickets (req, res) {
+    const token_header = req.get('Authorization')
+    // custumer data
+    const cd = jwt.decode(token_header.replace('bearer ', ''), authSecret)
 
-    async function getCustomerTickets(req, res) {
-        const token_header = req.get("Authorization");
-        //custumer data
-        const cd = jwt.decode(token_header.replace("bearer ", ""), authSecret);
+    const tickets = await app
+      .db('ticket')
+      .where({ cnpjcpf: cd.cnpjcpf, generated: false })
 
-        const tickets = await app.db("ticket").where({ cnpjcpf: cd.cnpjcpf, generated: false });
+    return res.json(tickets)
+  }
 
-        return res.json(tickets);
+  function payTicket (req, res) {
+    const cd = jwt.decode(
+      req.get('Authorization').replace('bearer ', ''),
+      authSecret
+    )
+    const today = moment()
+    const request_data = {
+      NIDBOL: 21312,
+      KEYBOL: 'f703655c-5f66-40ff-8f4e-0b4dfbe63a60',
+      DATPGT: today,
+      VLRPAG: 152.52,
+      STABOL: 2
     }
 
-    function payTicket(req, res) {
-        const cd = jwt.decode( req.get("Authorization").replace("bearer ", ""), authSecret);
-        const today = moment();
-        const request_data = {
-            NIDBOL: 21312,
-            KEYBOL: "f703655c-5f66-40ff-8f4e-0b4dfbe63a60",
-            DATPGT: today,
-            VLRPAG: 152.52,
-            STABOL: 2
-        }
+    app
+      .db('ticket')
+      .update({
+        status_payment: request_data.STABOL,
+        date_payment: request_data.DATPGT,
+        payment_value: request_data.VLRPAG,
+        id_bol: request_data.NIDBOL
+      })
+      .where({
+        cnpjcpf: cd.cnpjcpf
+      })
+      .then(_ => {
+        console.log(_)
 
-        app.db("ticket").update({
-            status_payment: request_data.STABOL,
-            date_payment: request_data.DATPGT,
-            payment_value: request_data.VLRPAG,
-            id_bol: request_data.NIDBOL
-        }).where({
-            cnpjcpf: cd.cnpjcpf
-        })
-        .then(_ => {
-            console.log(_);
-            
-            return res.sendStatus(200);
-        })
-        .catch(error => {
-            console.log(error);
-            
-            return res.json(error);
-        });
-    }
+        return res.sendStatus(200)
+      })
+      .catch(error => {
+        console.log(error)
 
-    return {
-        getCustomerTickets,
-        payTicket
-    }
+        return res.json(error)
+      })
+  }
+
+  return {
+    getCustomerTickets,
+    payTicket
+  }
 }

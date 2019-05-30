@@ -6,11 +6,7 @@ const async = require('async')
 const path = require('path')
 
 module.exports = app => {
-  const {
-    existsOrError,
-    validarCNPJ,
-    validateCPF
-  } = app.components.validation
+  const { existsOrError, validarCNPJ, validateCPF } = app.components.validation
 
   const { registerUserLogActivity } = app.components.security
 
@@ -36,9 +32,11 @@ module.exports = app => {
   var handlebarsOptions = {
     viewEngine: {
       extName: 'handlebars',
-      partialsDir: path.resolve('./templates/')
+      partialsDir: path.resolve('./templates/email/'),
+      layoutsDir: path.resolve('./templates/email/partials'),
+      defaultLayout: 'template'
     },
-    viewPath: path.resolve('./templates/'),
+    viewPath: path.resolve('./templates/email'),
     extName: '.html'
   }
 
@@ -81,15 +79,20 @@ module.exports = app => {
       // exp: now + 1
     }
 
-      try {
-        await registerUserLogActivity({ id: user.id, activity: 'login', ip: req.body.payload.ip, date: req.body.payload.logDate })
-        return res.json({
-          ...payload,
-          token: jwt.encode(payload, authSecret)
-        })
-      } catch (msg) {
-        return res.status(500).send(msg)
-      }
+    try {
+      await registerUserLogActivity({
+        id: user.id,
+        activity: 'login',
+        ip: req.body.payload.ip,
+        date: req.body.payload.logDate
+      })
+      return res.json({
+        ...payload,
+        token: jwt.encode(payload, authSecret)
+      })
+    } catch (msg) {
+      return res.status(500).send(msg)
+    }
   }
 
   function forgotPassword (req, res) {
@@ -100,11 +103,10 @@ module.exports = app => {
             .db('customers')
             .where({ cnpjcpf: req.body.payload.cnpjcpf })
             .then(_ => {
-              
               done(null, _[0])
             })
             .catch(err => {
-              console.log("auth.js | line:107",err)
+              console.log('auth.js | line:107', err)
               return done('Usuário não encontrado.')
             })
         },
@@ -127,12 +129,13 @@ module.exports = app => {
             })
             .then(async _ => {
               const customer = await app.db('customers').where({ id: user.id })
-              
+              console.log(token)
+
               done(null, token, customer[0])
             })
             .catch(err => {
-              console.log(" auth.js | line:134", customer[0])
-              return done(err)
+              console.log(err)
+              // return done(err)
             })
           // User.findByIdAndUpdate({ _id: user._id }, { reset_password_token: token, reset_password_expires: Date.now() + 86400000 }, { upsert: true, new: true }).exec(function(err, new_user) {
           //   done(err, token, new_user);
@@ -141,7 +144,7 @@ module.exports = app => {
         function (token, user, done) {
           // const contact = await app.db.raw(
           //   `SELECT contact FROM contacts WHERE id_cliente = '${user.id}'`
-          // );   
+          // );
           var data = {
             to: 'gabriel.n64@hotmail.com',
             from: email,
@@ -152,21 +155,27 @@ module.exports = app => {
               name: user.nameaccount
             }
           }
-          
 
-          smtpTransport.sendMail(data, function (err, info) {
-            // console.log(err)
-            // if (!err) {
-            //   return res.json({
-            //     message: 'Kindly check your email for further instructions'
-            //   })
-            // } else {
-            //   done(err, token, user)
-            // }
-            if (err) {
-              console.log(err);
+          smtpTransport.sendMail(data, async function (err, info) {
+            console.log(err, info)
+            if (!err) {
+              try {
+                await registerUserLogActivity({
+                  id: user.id,
+                  activity: 'solicitação para redefinir senha',
+                  ip: req.body.payload.ip,
+                  date: req.body.payload.logDate
+                })
+                return res.json({
+                  message:
+                    'As instruções para redefinição de senha foram enviadas para seu e-mail. Por favor, cheque seu e-mail.'
+                })
+              } catch (msg) {
+                console.log(msg)
+                return res.status(200).send(msg)
+              }
             } else {
-              console.log('Email enviado: ' + info.response);
+              done(err, token, user)
             }
           })
         }
@@ -179,8 +188,14 @@ module.exports = app => {
   }
   async function resetPassword (req, res) {
     try {
-      existsOrError(req.body.payload.newPassword, 'Você precisa digitar uma senha nova.')
-      existsOrError(req.body.payload.verifyPassword, 'Você precisa confirmar a sua nova senha.')
+      existsOrError(
+        req.body.payload.newPassword,
+        'Você precisa digitar uma senha nova.'
+      )
+      existsOrError(
+        req.body.payload.verifyPassword,
+        'Você precisa confirmar a sua nova senha.'
+      )
     } catch (msg) {
       return res.status(400).send(msg)
     }
@@ -214,10 +229,21 @@ module.exports = app => {
               }
             }
 
-            smtpTransport.sendMail(data, function (err) {
+            smtpTransport.sendMail(data, async function (err) {
               console.log(err)
               if (!err) {
-                return res.json({ message: 'Password reset' })
+                try {
+                  const user = result[0]
+                  await registerUserLogActivity({
+                    id: user.id,
+                    activity: 'resetPassword',
+                    ip: req.body.payload.ip,
+                    date: req.body.payload.logDate
+                  })
+                  return res.json({ message: 'Password reset' })
+                } catch (msg) {
+                  return res.status(200).send(msg)
+                }
               } else {
                 return res.status(500).send(err)
               }
@@ -230,7 +256,9 @@ module.exports = app => {
         return res.status(400).send('As senhas não coincidem.')
       }
     } else {
-      return res.status(400).send('Token expirado, tente solicitar a alteração de senha novamente.')
+      return res
+        .status(400)
+        .send('Token expirado, tente solicitar a alteração de senha novamente.')
     }
   }
 
