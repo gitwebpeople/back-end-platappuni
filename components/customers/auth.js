@@ -151,7 +151,7 @@ module.exports = app => {
             template: 'forgot-password-email',
             subject: 'Password help has arrived!',
             context: {
-              url: 'http://localhost:3000/auth/reset_password?token=' + token,
+              url: 'http://localhost:8080/resetPassword?token=' + token,
               name: user.nameaccount
             }
           }

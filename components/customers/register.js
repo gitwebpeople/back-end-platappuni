@@ -61,7 +61,7 @@ module.exports = app => {
 
     const customer = await app.db('customers').where({ cnpjcpf: data.cnpjcpf })
 
-    if (customer.length > 0) { return res.status(400).send(`Já existe um usuário com este ${pjpf == 'pf' ? 'CPF' : 'CNPJ'}`) }
+    if (customer.length > 0) { return res.status(400).send(`Já existe um usuário com este ${data.pjpf == 'pf' ? 'CPF' : 'CNPJ'}`) }
 
     const customerEmail = await app.db('customers').where({ email: data.email})
 
