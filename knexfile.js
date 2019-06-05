@@ -1,6 +1,6 @@
 const env = require('./.env')
 
-//module.exports = {
+// module.exports = {
 //  client: 'postgresql',
 //  connection: {
 //    database: 'plataforma_appuni',
@@ -8,14 +8,14 @@ const env = require('./.env')
 //    password: 'Sparda11',
 //    port: ''
 //  }
-//}
- module.exports = {
-   client: "postgresql",
-   connection: {
-     host: env.host,
-     database: env.database,
-     user: env.user,
-     password: env.password,
-     port: env.port
-   }
- };
+// }
+module.exports = {
+  client: 'postgresql',
+  connection: {
+    host: env.host,
+    database: env.database,
+    user: env.user,
+    password: env.password,
+    port: env.port
+  }
+}
