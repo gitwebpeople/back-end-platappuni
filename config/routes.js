@@ -58,4 +58,10 @@ module.exports = app => {
     .route('/getGlobalConf')
     .all(app.config.passport.authenticate())
     .get(app.cron.scan.api_livre.getGlobalConf)
+
+  // BILLING
+  app
+    .route('/getCustomersProduct')
+    .all(app.config.passport.authenticate())
+    .get(app.components.billing.getCustomerProducts)
 }
