@@ -61,7 +61,7 @@ module.exports = app => {
 
   // BILLING
   app
-    .route('/getCustomersProduct')
+    .route('/getCustomerProducts')
     .all(app.config.passport.authenticate())
     .get(app.components.billing.getCustomerProducts)
 }
