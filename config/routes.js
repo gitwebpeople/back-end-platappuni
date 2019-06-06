@@ -45,6 +45,10 @@ module.exports = app => {
     .all(app.config.passport.authenticate())
     .get(app.components.ticket.index.getCustomerTickets)
   app
+    .route('/fetchProductTickets')
+    .all(app.config.passport.authenticate())
+    .get(app.components.ticket.index.getProductTickets)
+  app
     .route('/payTicket')
     .all(app.config.passport.authenticate())
     .get(app.components.ticket.index.payTicket)

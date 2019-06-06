@@ -3,6 +3,17 @@ const { authSecret } = require('../../.env')
 const moment = require('moment')
 
 module.exports = app => {
+  async function getProductTickets (req, res) {
+    const tokenHeader = req.get('Authorization')
+    const idProd = req.query.idProd
+    const cd = jwt.decode(tokenHeader.replace('bearer ', ''), authSecret)
+
+    const data = await app
+      .db('ticket')
+      .where({ cnpjcpf: cd.cnpjcpf, idbilling: idProd })
+
+    return res.json(data)
+  }
   async function getCustomerTickets (req, res) {
     const token_header = req.get('Authorization')
     // custumer data
@@ -54,6 +65,7 @@ module.exports = app => {
 
   return {
     getCustomerTickets,
+    getProductTickets,
     payTicket
   }
 }

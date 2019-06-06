@@ -15,7 +15,7 @@ module.exports = {
     host: env.host,
     database: env.database,
     user: env.user,
-    password: env.password,
+    password: env.passcword,
     port: env.port
   }
 }

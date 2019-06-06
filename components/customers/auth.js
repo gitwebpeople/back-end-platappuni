@@ -79,6 +79,8 @@ module.exports = app => {
       // exp: now + 1
     }
 
+    console.log(payload)
+
     try {
       await registerUserLogActivity({
         id: user.id,
