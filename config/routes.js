@@ -68,4 +68,10 @@ module.exports = app => {
     .route('/getCustomerProducts')
     .all(app.config.passport.authenticate())
     .get(app.components.billing.getCustomerProducts)
+
+  // RECORD ROUTES
+  app
+    .route('/getHistoryActivities')
+    .all(app.config.passport.authenticate())
+    .get(app.components.billing.getHistoryActivities)
 }

@@ -1,4 +1,13 @@
+const { authSecret } = require('../../.env')
+const jwt = require('jwt-simple')
+
 module.exports = app => {
+  async function getHistoryActivities(req, res) {
+    const cd = jwt.decode(req.get('Authorization').replace('bearer ', ''), authSecret)
+    const result = await app.db('user_logs').where({ userId: cd.id }).first()
+
+    return res.json(result);
+  }
   async function registerUserLogActivity (logData) {
     await app.db('user_logs').insert({ activity: logData.activity, ip: logData.ip, userId: logData.id, date: logData.date })
       .then(_ => {
@@ -19,6 +28,7 @@ module.exports = app => {
   }
   return {
     registerUserLogActivity,
-    registerAdminLogActivity
+    registerAdminLogActivity,
+    getHistoryActivities
   }
 }
