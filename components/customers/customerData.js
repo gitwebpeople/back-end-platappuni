@@ -14,6 +14,7 @@ module.exports = app => {
 
     try {
       existsOrError(body.nome, 'Você não informou o nome da conta')
+      existsOrError(body.responsavel, 'Você não informou um responsável pela conta')
       existsOrError(body.logradouro, 'você não informou o logradouro')
       existsOrError(body.numero, 'Você não informou o número')
       existsOrError(body.cep, 'Você não informou o cep')
@@ -50,6 +51,7 @@ module.exports = app => {
       })
       .update({
         nameaccount: body.nome,
+        responsavel: body.responsavel,
         logradouro: body.logradouro,
         number: body.numero,
         cep: body.cep,
@@ -79,6 +81,7 @@ module.exports = app => {
         return res.status(500).send(err)
       })
   }
+
   const selectCustomerData = async (req, res) => {
     const user = jwt.decode(
       req.get('Authorization').replace('bearer ', ''),
