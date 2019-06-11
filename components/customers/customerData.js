@@ -15,7 +15,7 @@ module.exports = app => {
     const { registerUserLogActivity } = app.components.security
 
     try {
-      existsOrError(body.nome, 'Você não informou o nome da conta')
+      existsOrError(body.nameAccount, 'Você não informou o nome da conta')
       existsOrError(body.responsavel, 'Você não informou um responsável pela conta')
       existsOrError(body.logradouro, 'você não informou o logradouro')
       existsOrError(body.numero, 'Você não informou o número')
