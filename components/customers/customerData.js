@@ -18,10 +18,10 @@ module.exports = app => {
       existsOrError(body.nameaccount, 'Você não informou o nome da conta')
       existsOrError(body.responsavel, 'Você não informou um responsável pela conta')
       existsOrError(body.logradouro, 'você não informou o logradouro')
-      existsOrError(body.numero, 'Você não informou o número')
+      existsOrError(body.number, 'Você não informou o número')
       existsOrError(body.cep, 'Você não informou o cep')
-      existsOrError(body.estado, 'Você não informou o estado')
-      existsOrError(body.cidade, 'Você não informou a cidade')
+      existsOrError(body.state, 'Você não informou o estado')
+      existsOrError(body.city, 'Você não informou a cidade')
       existsOrError(
         body.comercial,
         'Você não informou ao menos um contato comercial'
@@ -55,15 +55,15 @@ module.exports = app => {
         nameaccount: body.nameaccount,
         responsavel: body.responsavel,
         logradouro: body.logradouro,
-        number: body.numero,
+        number: body.number,
         cep: body.cep,
-        state: body.estado,
-        city: body.cidade,
+        state: body.state,
+        city: body.city,
         comercial: body.comercial,
         comercial2: body.comercial2,
         celular: body.celular,
         celular2: body.celular2,
-        complement: body.complemento
+        complement: body.complement
       })
       .then(async _ => {
         try {
