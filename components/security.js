@@ -4,7 +4,7 @@ const jwt = require('jwt-simple')
 module.exports = app => {
   async function getHistoryActivities (req, res) {
     const cd = jwt.decode(req.get('Authorization').replace('bearer ', ''), authSecret)
-    const result = await app.db('user_logs').where({ userId: cd.id }).first()
+    const result = await app.db('user_logs').where({ userId: cd.id })
 
     return res.json(result)
   }
