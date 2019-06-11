@@ -20,6 +20,11 @@ module.exports = app => {
     .route('/alreadyUpdatedData')
     .all(app.config.passport.authenticate())
     .get(app.components.customers.customerData.alreadyUpdatedData)
+  
+  app
+    .route('/changePasswordPanel')
+    .all(app.config.passport.authenticate())
+    .post(app.components.customers.customerData.changePasswordFromPanel)
 
   // CONTACTS
   app
@@ -73,5 +78,5 @@ module.exports = app => {
   app
     .route('/getHistoryActivities')
     .all(app.config.passport.authenticate())
-    .get(app.components.billing.getHistoryActivities)
+    .get(app.components.security.getHistoryActivities)
 }

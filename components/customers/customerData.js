@@ -12,6 +12,8 @@ module.exports = app => {
     )
     const body = req.body.payload || null
 
+    const { registerUserLogActivity } = app.components.security
+
     try {
       existsOrError(body.nome, 'Você não informou o nome da conta')
       existsOrError(body.responsavel, 'Você não informou um responsável pela conta')
@@ -106,9 +108,41 @@ module.exports = app => {
     return res.json(result)
   }
 
+  const changePasswordFromPanel = async (req, res) => {
+    const customerData = jwt.decode(req.get('Authorization').replace('bearer ', ''), authSecret);
+    const {password, confirmPassword} = req.body.payload;
+
+    if(password == confirmPassword) {
+      
+      try {
+        await registerUserLogActivity({
+          id: customerData.id,
+          activity: 'alterar senha pelo painel',
+          ip: req.body.payload.ip,
+          date: req.body.payload.logDate
+        })
+        app.db('customers').update({ password }).where({ cnpjcpf: customerData.cnpjcpf })
+        .then(r => {
+          return res.send(true);
+        })
+        .catch(err => {
+          return res.send(err).status(500)
+        })
+      } catch (msg) {
+        console.log(msg)
+        return res.status(500).send(msg)
+      }
+     
+    } else {
+      return res.json({ message: "As senhas não coincidem"});
+    }
+    
+  }
+
   return {
     alreadyUpdatedData,
     selectCustomerData,
-    updateCustomerData
+    updateCustomerData,
+    changePasswordFromPanel
   }
 }
