@@ -110,9 +110,9 @@ module.exports = app => {
 
   const changePasswordFromPanel = async (req, res) => {
     const customerData = jwt.decode(req.get('Authorization').replace('bearer ', ''), authSecret);
-    const {newPassword, confirmPassword} = req.body.payload;
+    const {newPassword, reNewPassword} = req.body.payload;
 
-    if(newPassword == confirmPassword) {
+    if(newPassword == reNewPassword) {
       
       try {
         await registerUserLogActivity({
