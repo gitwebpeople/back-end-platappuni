@@ -110,9 +110,9 @@ module.exports = app => {
 
   const changePasswordFromPanel = async (req, res) => {
     const customerData = jwt.decode(req.get('Authorization').replace('bearer ', ''), authSecret);
-    const {password, confirmPassword} = req.body.payload;
+    const {newPassword, confirmPassword} = req.body.payload;
 
-    if(password == confirmPassword) {
+    if(newPassword == confirmPassword) {
       
       try {
         await registerUserLogActivity({
@@ -121,7 +121,7 @@ module.exports = app => {
           ip: req.body.payload.ip,
           date: req.body.payload.logDate
         })
-        app.db('customers').update({ password }).where({ cnpjcpf: customerData.cnpjcpf })
+        app.db('customers').update({ password: newPassword }).where({ cnpjcpf: customerData.cnpjcpf })
         .then(r => {
           return res.send(true);
         })
