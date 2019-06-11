@@ -52,7 +52,7 @@ module.exports = app => {
         id: user.id
       })
       .update({
-        nameaccount: body.nome,
+        nameaccount: body.nameAccount,
         responsavel: body.responsavel,
         logradouro: body.logradouro,
         number: body.numero,
