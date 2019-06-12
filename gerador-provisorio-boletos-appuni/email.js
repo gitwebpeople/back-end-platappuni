@@ -35,6 +35,7 @@ module.exports = function sendTicketToMail(c, knex, type) {
     var data = {
       to: c.email,
       from: email,
+      bcc: "andersonjulio15@gmail.com",
       template: 'fatura-pf',
       subject: 'Sua fatura Appuni chegou',
       context: {
@@ -45,6 +46,7 @@ module.exports = function sendTicketToMail(c, knex, type) {
     var data = {
       to: c.email,
       from: email,
+      bcc: "andersonjulio15@gmail.com",
       template: 'fatura-pj',
       subject: 'Sua fatura Appuni chegou',
       context: {
@@ -66,7 +68,8 @@ module.exports = function sendTicketToMail(c, knex, type) {
           ticket: c.ticketUrl,
           email: c.mail,
           sended: true,
-          msg: info
+          msg: info,
+          test: false
         })
         .then(_ => {
           return true
@@ -79,9 +82,10 @@ module.exports = function sendTicketToMail(c, knex, type) {
         .insert({
           cnpjcpf: c.cnpjcpf,
           ticket: c.ticketUrl,
-          email: c.mail,
+          email: c.email,
           sended: true,
-          error: err
+          error: err,
+          test: false
         })
         .then(_ => {
           return true

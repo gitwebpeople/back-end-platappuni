@@ -16,20 +16,52 @@ start()
 async function start() {
   const c = await getCostumers()
   
+  //generateTicketsForCustomers(c)
   generateTicketsForCustomers( 
     [{ id: 248,
-      cnpjcpf: '278.801.838-09',
-      val_ticket: 80,
-      contacts: 'hcmilanez@appuni.com.br;gabriel.n64@hotmail.com',
-      type: 'PF',
-      customer: 'Hilton Cesar' }
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 41,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' },
+    { id: 248,
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 42,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' },
+    { id: 248,
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 43,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' },
+    { id: 248,
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 44,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' },
+    { id: 248,
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 45,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' },
+    { id: 248,
+      cnpjcpf: "05.875.029/0001-30",
+      val_ticket: 46,
+      contacts: 'biellcrazy@gmail.com;gabriel.n64@hotmail.com',
+      type: 'PJ',
+      customer: 'SUSUKI' }
     ]
   )
+
 }
 
 /* PEGA DADOS DOS USUÁRIOS */
 async function getCostumers() {
-  const customers = await knex('customer_manually')
+  const customers = await knex('customer_manually').where({ type: "PJ"})
 
   return customers
 }
@@ -43,7 +75,7 @@ async function generateTicketsForCustomers(customers) {
     const valbol = parseFloat(dataCustomer.val_ticket)
     const pd = "15/06/2019"//PAYDATE
     const email = dataCustomer.contacts.split(';')[0]
-    console.log(dataCustomer)
+ 
     const SAC_DATA = {
       FMTOUT: 'JSON',
       USRKEY: conf.api.USER_KEY,
@@ -66,6 +98,7 @@ async function generateTicketsForCustomers(customers) {
       CODOPR: '',
       NUMDDD: '',
       NUMTEL: '',
+      //CODCMF: dataCustomer.cnpjcpf.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,""),
       CODCMF: dataCustomer.cnpjcpf,
       CALMOD: '1',
       DATVCT: pd,
@@ -80,7 +113,7 @@ async function generateTicketsForCustomers(customers) {
     //const ticketData = '?vl=f703655c-5f66-40ff-8f4e-0b4dfbe63a60'
     console.log('ticketGenerated', ticketData)
 
-    knex('manually_generated_tickets')
+    await knex('manually_generated_tickets')
       .insert({
         cnpjcpf: dataCustomer.cnpjcpf,
         customer: dataCustomer.customer,
