@@ -1,15 +1,15 @@
-//const env = require('./.env')
+const env = require('./.env')
 
-module.exports = {
-  client: 'postgresql',
-  connection: {
-    database: 'appsys-idc',
-    user: 'appdbaws',
-    password: 'zw44V&1n',
-    host: 'plesk-web-a.appuni.com.br',
-    port: ''
-  }
-}
+// module.exports = {
+//   client: 'postgresql',
+//   connection: {
+//     database: 'appsys-idc',
+//     user: 'appdbaws',
+//     password: 'zw44V&1n',
+//     host: 'plesk-web-a.appuni.com.br',
+//     port: ''
+//   }
+// }
 // module.exports = {
 //   client: 'postgresql',
 //   connection: {
@@ -20,3 +20,14 @@ module.exports = {
 //     port: env.port
 //   }
 // }
+
+module.exports = {
+  client: 'postgresql',
+  connection: {
+    database: 'appuni',
+    user: 'postgres',
+    password: '1010',
+    host: 'localhost',
+    port: '5432'
+  }
+}

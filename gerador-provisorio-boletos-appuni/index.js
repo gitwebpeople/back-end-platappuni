@@ -4,32 +4,119 @@ const fs = require('fs')
 const path = require('path')
 const jwt = require('jwt-simple')
 const { authSecret } = require('../.env')
-const globalConfigContentPath = path.resolve(__dirname, 'globalConf.json')
+const globalConfigContentPath = path.resolve(__dirname, '../cron/scan/globalConf.json')
 const config = require('../knexfile.js')
 const knex = require('knex')(config)
 const moment = require('moment')
 
 const sendTicketToMail = require('./email')
+//console.log(globalConfigContentPath)
+start()
 
-// knex.migrate.latest([config])
-// knex.seed.run([config])
+async function start() {
+  const c = await getCostumers()
+  
+  generateTicketsForCustomers( 
+    [{ id: 248,
+      cnpjcpf: '278.801.838-09',
+      val_ticket: 80,
+      contacts: 'hcmilanez@appuni.com.br;gabriel.n64@hotmail.com',
+      type: 'PF',
+      customer: 'Hilton Cesar' }
+    ]
+  )
+}
 
-sendTicketToMail(
-  {
-    mail: 'g@g.com',
-    cnpjcpf: '101010',
-    ticketUrl: 'i.com/cisdfjs'
-  },
-  knex
-)
+/* PEGA DADOS DOS USUÁRIOS */
+async function getCostumers() {
+  const customers = await knex('customer_manually')
 
-function ggc () {
+  return customers
+}
+
+/* PREPARA DADOS PARA GERAÇÃO DO BOLETO E ENVIA PARA FUNÇÃO DO E-MAIL */
+async function generateTicketsForCustomers(customers) {
+  const conf = ggc()
+  const token = await getToken()
+
+  customers.forEach(async dataCustomer => {
+    const valbol = parseFloat(dataCustomer.val_ticket)
+    const pd = "15/06/2019"//PAYDATE
+    const email = dataCustomer.contacts.split(';')[0]
+    console.log(dataCustomer)
+    const SAC_DATA = {
+      FMTOUT: 'JSON',
+      USRKEY: conf.api.USER_KEY,
+      RSPTAR: '1', // RESPONSÁVEL PELA FATURA / 1 – Cedente ||  2 – Sacado
+      ACPMAL: '0', // ENVIAR FATURA POR E-MAIL / 0 - NÃO || 1 -SIM /
+      ACPSMS: '0', // ENVIAR FATURA POR SMS / 0 - NÃO || 1 - SIM /
+      ALTCPG: '0', // AVISAR QUANDO PAGA
+      ALTNPG: '0', // AVISAR QUANDO NÃO PAGA
+      NOMCED: 'APPUNI SOLUÇÕES WEB EIRELI',
+      NOMSAC: dataCustomer.customer,
+      SACMAL: email,
+      CODCEP: "",
+      CODUFE: "",
+      DSCEND: ``,
+      NUMEND: "",
+      DSCCPL: "",
+      DSCBAI: '',
+      DSCCID: "",
+      NUMPAI: '',
+      CODOPR: '',
+      NUMDDD: '',
+      NUMTEL: '',
+      CODCMF: dataCustomer.cnpjcpf,
+      CALMOD: '1',
+      DATVCT: pd,
+      VLRBOL: valbol,
+      PCTJUR: conf.api.PCTJUR,
+      DATVAL: pd
+    }
+
+    // Request to api-livre
+    const ticketData = await generateTicket(token, SAC_DATA)
+   
+    //const ticketData = '?vl=f703655c-5f66-40ff-8f4e-0b4dfbe63a60'
+    console.log('ticketGenerated', ticketData)
+
+    knex('manually_generated_tickets')
+      .insert({
+        cnpjcpf: dataCustomer.cnpjcpf,
+        customer: dataCustomer.customer,
+        val_ticket: valbol,
+        ticket_url: `${conf.api.URLCONFAT}${ticketData.urlpst}`
+      })
+      .then(_ => {
+        const emails = dataCustomer.contacts.split(';')
+      
+        emails.forEach(e => {
+          sendTicketToMail(
+            {
+              email: e,
+              cnpjcpf: dataCustomer.cnpjcpf,
+              ticketUrl: `${ticketData.urlpst}`
+            },
+            knex,
+            dataCustomer.type
+          )
+        })
+        
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  })
+}
+
+/* CARREGA CONFIGURAÇÕES GLOBAIS */
+function ggc() {
   const fileBuffer = fs.readFileSync(globalConfigContentPath, 'utf-8')
   const confJson = JSON.parse(fileBuffer)
   return confJson
 }
-
-async function getToken () {
+/* GERA TOKEN PARA GERAÇÃO DOS BOLETOS */
+async function getToken() {
   const conf = ggc()
   const instance = axios.create({
     headers: {
@@ -47,7 +134,8 @@ async function getToken () {
   return response.data.usrtok
 }
 
-async function generateTicket (token, SAC_DATA) {
+/* GERA O BOLETO */
+async function generateTicket(token, SAC_DATA) {
   const conf = ggc()
   const data = qs.stringify({
     FMTOUT: 'JSON',
@@ -64,73 +152,14 @@ async function generateTicket (token, SAC_DATA) {
       'accept-charset': 'UTF-8'
     }
   })
+
   const response = await instance.post(conf.api.URL, data)
   return response.data
-}
-
-async function getCostumers () {
-  const customers = await knex('tabela com dados dos boletos')
-
-  return customers
-}
-
-async function generateTicketsForCustomers (customers) {
-  const conf = ggc()
-  const token = await getToken()
-  customers.forEach(async dataCustomer => {
-    const pd = moment(dataCustomer.paydate).format('DD/MM/YYYY')
-    const SAC_DATA = {
-      FMTOUT: 'JSON',
-      USRKEY: conf.api.USER_KEY,
-      RSPTAR: '1', // RESPONSÁVEL PELA FATURA / 1 – Cedente ||  2 – Sacado
-      ACPMAL: '0', // ENVIAR FATURA POR E-MAIL / 0 - NÃO || 1 -SIM /
-      ACPSMS: '0', // ENVIAR FATURA POR SMS / 0 - NÃO || 1 - SIM /
-      ALTCPG: '0', // AVISAR QUANDO PAGA
-      ALTNPG: '0', // AVISAR QUANDO NÃO PAGA
-      NOMSAC: dataCustomer.nameaccount,
-      SACMAL: dataCustomer.email,
-      CODCEP: dataCustomer.cep,
-      CODUFE: dataCustomer.state,
-      DSCEND: `${dataCustomer.type}. ${dataCustomer.logradouro}`,
-      NUMEND: dataCustomer.number,
-      DSCCPL: dataCustomer.complement,
-      DSCBAI: '',
-      DSCCID: dataCustomer.city,
-      NUMPAI: '',
-      CODOPR: '',
-      NUMDDD: '',
-      NUMTEL: '',
-      CODCMF: dataCustomer.cnpjcpf,
-      CALMOD: '1',
-      DATVCT: pd,
-      VLRBOL: dataCustomer.baseval,
-      PCTJUR: conf.api.PCTJUR,
-      DATVAL: pd
-    }
-    // Request to api-livre
-    const ticketData = await generateTicket(token, SAC_DATA)
-    console.log(ticketData)
-    // const ticket_param = '?vl=f703655c-5f66-40ff-8f4e-0b4dfbe63a60'
-    await knex
-      .db('manuallyGeneratedTickets')
-      .insert({
-        cnpjcpf: dataCustomer.cnpjcpf,
-        product: dataCustomer.product,
-        valTicket: dataCustomer.valTicket,
-        ticketUrl: `${conf.api.URLCONFAT}${ticketData.urlpst}`
-      })
-      .then(_ => {
-        sendTicketToMail(
-          {
-            mail: dataCustomer.email,
-            cnpjcpf: dataCustomer.cnpjcpf,
-            ticketUrl: `${conf.api.URLCONFAT}${ticketData.urlpst}`
-          },
-          knex
-        )
-      })
-      .catch(error => {
-        console.log(error)
-      })
-  })
+    // .then(response => {
+    //   console.log("ticket_livre", response.data.usrtok)
+    //   return response.data
+    // })
+    // .catch(err => {
+    //   return err
+    // })
 }
