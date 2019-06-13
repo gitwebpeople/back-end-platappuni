@@ -1,15 +1,16 @@
 const path = require('path')
 const qs = require('querystring')
-
+const config = require('../knexfile.js')
+const knex = require('knex')(config)
 var hbs = require('nodemailer-express-handlebars')
-var email = process.env.MAILER_EMAIL_ID || 'appuni-sys@appuni.net'
-var pass = process.env.MAILER_PASSWORD || 'Gl28mo0!'
+var email = process.env.MAILER_EMAIL_ID || 'financeiro@appuni.com.br'
+var pass = process.env.MAILER_PASSWORD || 'Lub75657'
 const nodemailer = require('nodemailer')
 
 var smtpTransport = nodemailer.createTransport({
   // service: process.env.MAILER_SERVICE_PROVIDER || "Gmail",
-  host: 'smarter-email-a.appuni.com.br',
-  port: 2525,
+  host: 'smtp.office365.com',
+  port: 587,
   auth: {
     user: email,
     pass: pass
@@ -19,22 +20,52 @@ var smtpTransport = nodemailer.createTransport({
 var handlebarsOptions = {
   viewEngine: {
     extName: 'handlebars',
-    partialsDir: path.resolve('./templates/email/'),
-    layoutsDir: path.resolve('./templates/email/partials'),
+    partialsDir: path.resolve('../templates/email/'),
+    layoutsDir: path.resolve('../templates/email/partials'),
     defaultLayout: 'template'
   },
-  viewPath: path.resolve('./templates/email'),
+  viewPath: path.resolve('../templates/email'),
   extName: '.html'
 }
-
 smtpTransport.use('compile', hbs(handlebarsOptions))
 
-module.exports = function sendTicketToMail(c, knex, type) {
-  const u = c.ticketUrl
+getTicketsToDispatch();
+
+async function getTicketsToDispatch () {
+  let a = 0
+  const c = await knex('manually_generated_tickets').where({ teste: true })
+  //const c = [1,2,3,4,5,6,7,8,9,10]
+  
+  // console.log(c);
+  c.forEach(async (row, i) => {
+    //await setTimeout(() => sendTicketToMail(row, 'PJ'), 3000)
+    // await setTimeout(() => {console.log(i)}, 3000)
+    
+  });
+
+  (function myLoop (i) {          
+    setTimeout(function () { 
+      //sendMail(c[a])  
+      
+      sendTicketToMail(c[a], 'PJ')         //  your code here                
+      a++
+      if (--i) myLoop(i);      //  decrement i and call myLoop again if i > 0
+    }, 10000)
+   })(c.length);
+}
+
+function sendMail(c) {
+  console.log("enviando...", c)
+}
+
+
+function sendTicketToMail(c, type) {
+  const u = c.ticket_url;
+  const emails = c.email.replace(';', ',')
   if(type == 'PF'){
     var data = {
       to: c.email,
-      from: email,
+      from: emails,
       bcc: "andersonjulio15@gmail.com",
       template: 'fatura-pf',
       subject: 'Sua fatura Appuni chegou',
@@ -45,7 +76,7 @@ module.exports = function sendTicketToMail(c, knex, type) {
   } else {
     var data = {
       to: c.email,
-      from: email,
+      from: emails,
       bcc: "andersonjulio15@gmail.com",
       template: 'fatura-pj',
       subject: 'Sua fatura Appuni chegou',
@@ -61,15 +92,17 @@ module.exports = function sendTicketToMail(c, knex, type) {
 
   smtpTransport.sendMail(data, async function(err, info) {
     console.log(err, info)
+    console.log("--------");
+    
     if (!err) {
       await knex('sended_email_logs')
         .insert({
           cnpjcpf: c.cnpjcpf,
-          ticket: c.ticketUrl,
-          email: c.mail,
+          ticket: c.ticket_url,
+          email: emails,
           sended: true,
           msg: info,
-          test: false
+          test: true
         })
         .then(_ => {
           return true
@@ -81,11 +114,11 @@ module.exports = function sendTicketToMail(c, knex, type) {
       await knex('sended_email_logs')
         .insert({
           cnpjcpf: c.cnpjcpf,
-          ticket: c.ticketUrl,
+          ticket: c.ticket_url,
           email: c.email,
           sended: true,
           error: err,
-          test: false
+          test: true
         })
         .then(_ => {
           return true
