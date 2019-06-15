@@ -33,53 +33,38 @@ getTicketsToDispatch();
 
 async function getTicketsToDispatch () {
   let a = 0
-  const c = await knex('manually_generated_tickets').where({ teste: true })
-  //const c = [1,2,3,4,5,6,7,8,9,10]
-  
-  // console.log(c);
-  c.forEach(async (row, i) => {
-    //await setTimeout(() => sendTicketToMail(row, 'PJ'), 3000)
-    // await setTimeout(() => {console.log(i)}, 3000)
-    
-  });
-
+  const c = await knex('manually_generated_tickets').where({ teste: false, generated: true, type: "PF" });
+  //console.log(c)
   (function myLoop (i) {          
     setTimeout(function () { 
-      //sendMail(c[a])  
-      
-      sendTicketToMail(c[a], 'PJ')         //  your code here                
+      sendTicketToMail(c[a], 'PF')         //  your code here                
       a++
       if (--i) myLoop(i);      //  decrement i and call myLoop again if i > 0
-    }, 10000)
+    }, 3000)
    })(c.length);
 }
-
-function sendMail(c) {
-  console.log("enviando...", c)
-}
-
 
 function sendTicketToMail(c, type) {
   const u = c.ticket_url;
   const emails = c.email.replace(';', ',')
   if(type == 'PF'){
     var data = {
-      to: c.email,
-      from: emails,
-      bcc: "andersonjulio15@gmail.com",
+      to: emails,
+      from: "financeiro@appuni.com.br",
+      bcc: "renan@webpeople.net.br,gabriel.n64@hotmail.com",
       template: 'fatura-pf',
-      subject: 'Sua fatura Appuni chegou',
+      subject: 'Appuni - Renovação de serviços',
       context: {
         boleto: `http://fatura2.livre.com.br/FaturaBradesco?vl={${qs.parse(u.substr(1,u.length)).vl}}`
       }
     }
   } else {
     var data = {
-      to: c.email,
-      from: emails,
-      bcc: "andersonjulio15@gmail.com",
+      to: emails,
+      from: "financeiro@appuni.com.br",
+      bcc: "renan@webpeople.net.br,gabriel.n64@hotmail.com,hcmilanez@appuni.com.br",
       template: 'fatura-pj',
-      subject: 'Sua fatura Appuni chegou',
+      subject: 'Appuni - Renovação de serviços',
       context: {
         nfe:
           'http://painel.appuni.com.br/financeiro/notas fiscais/2019/06/15/' +

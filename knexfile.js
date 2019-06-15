@@ -26,7 +26,7 @@ module.exports = {
   connection: {
     database: 'appuni',
     user: 'postgres',
-    password: '1010',
+    password: '123mudar@',
     host: 'localhost',
     port: '5432'
   }
