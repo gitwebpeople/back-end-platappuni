@@ -1,71 +1,100 @@
-const jwt = require('jwt-simple')
-const { authSecret } = require('../../.env')
-const moment = require('moment')
+const axios = require('axios')
+const qs = require('querystring')
 
-module.exports = app => {
-  async function getProductTickets (req, res) {
-    const tokenHeader = req.get('Authorization')
-    const idProd = req.query.idProd
-    const cd = jwt.decode(tokenHeader.replace('bearer ', ''), authSecret)
+const { baseConf } = require('./config')
 
-    const data = await app
-      .db('ticket')
-      .where({ cnpjcpf: cd.cnpjcpf, idbilling: idProd })
+module.exports = {
+  getToken: () => {
+    const conf = baseConf()
 
-    return res.json(data)
-  }
-  async function getCustomerTickets (req, res) {
-    const token_header = req.get('Authorization')
-    // custumer data
-    const cd = jwt.decode(token_header.replace('bearer ', ''), authSecret)
+    const instance = axios.create({
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'accept-charset': 'UTF-8'
+      }
+    })
 
-    const tickets = await app
-      .db('ticket')
-      .where({ cnpjcpf: cd.cnpjcpf, generated: false })
+    const data = qs.stringify({
+      FMTOUT: 'JSON',
+      USRKEY: conf.api.USER_KEY
+    })
+    return new Promise((resolve, reject) => {
+      instance.post(conf.api.URL, data).then(response => {
+        if (response.data.usrtok) {
+          resolve(response.data.usrtok)
+        } else {
+          reject(response.data.dscerr)
+        }
+      })
+    })
+  },
 
-    return res.json(tickets)
-  }
+  generateTicket: (token, ticketData) => {
+    const conf = baseConf()
+    const d = ticketData
+    const instance = axios.create({
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'accept-charset': 'UTF-8'
+      }
+    })
 
-  function payTicket (req, res) {
-    const cd = jwt.decode(
-      req.get('Authorization').replace('bearer ', ''),
-      authSecret
-    )
-    const today = moment()
-    const request_data = {
-      NIDBOL: 21312,
-      KEYBOL: 'f703655c-5f66-40ff-8f4e-0b4dfbe63a60',
-      DATPGT: today,
-      VLRPAG: 152.52,
-      STABOL: 2
+    const SAC_DATA = {
+      FMTOUT: 'JSON',
+      USRKEY: conf.api.USER_KEY,
+      RSPTAR: '1', // RESPONSÁVEL PELA FATURA / 1 – Cedente ||  2 – Sacado
+      ACPMAL: '0', // ENVIAR FATURA POR E-MAIL / 0 - NÃO || 1 -SIM /
+      ACPSMS: '0', // ENVIAR FATURA POR SMS / 0 - NÃO || 1 - SIM /
+      ALTCPG: '0', // AVISAR QUANDO PAGA
+      ALTNPG: '0', // AVISAR QUANDO NÃO PAGA
+      NOMCED: 'APPUNI SOLUÇÕES WEB EIRELI',
+      NOMSAC: d.customer,
+      SACMAL: d.email,
+      CODCEP: '',
+      CODUFE: '',
+      DSCEND: ``,
+      NUMEND: '',
+      DSCCPL: '',
+      DSCBAI: '',
+      DSCCID: '',
+      NUMPAI: '',
+      CODOPR: '',
+      NUMDDD: '',
+      NUMTEL: '',
+      // CODCMF: dataCustomer.cnpjcpf.replace(
+      //   /[.,\/#!$%\^&\*;:{}=\-_`~()]/g,
+      //   ''
+      // ),
+      CODCMF: d.cnpjcpf == 18 ? d.cnpjcpf : d.cnpjcpf.replace(
+        /[.,\/#!$%\^&\*;:{}=\-_`~()]/g,
+        ''
+      ),
+      CALMOD: '1',
+      DATVCT: d.pd,
+      VLRBOL: d.valbol,
+      PCTJUR: conf.api.PCTJUR,
+      DATVAL: d.pd
     }
 
-    app
-      .db('ticket')
-      .update({
-        status_payment: request_data.STABOL,
-        date_payment: request_data.DATPGT,
-        payment_value: request_data.VLRPAG,
-        id_bol: request_data.NIDBOL
-      })
-      .where({
-        cnpjcpf: cd.cnpjcpf
-      })
-      .then(_ => {
-        console.log(_)
-
-        return res.sendStatus(200)
-      })
-      .catch(error => {
-        console.log(error)
-
-        return res.json(error)
-      })
+    const data = qs.stringify({
+      FMTOUT: 'JSON',
+      USRKEY: conf.api.USER_KEY,
+      USRTOK: token,
+      URLRET: '',
+      TIPBOL: conf.api.TIPBOL,
+      ...SAC_DATA
+    })
+    return new Promise((resolve, reject) => {
+      instance
+        .post(conf.api.URL, data)
+        .then(response => {
+          if (response.data.urlpst) {
+            resolve(response.data.urlpst)
+          } else {
+            reject(response.data.dscerr)
+          }
+        })
+    })
   }
 
-  return {
-    getCustomerTickets,
-    getProductTickets,
-    payTicket
-  }
 }

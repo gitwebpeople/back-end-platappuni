@@ -20,7 +20,7 @@ module.exports = app => {
     .route('/alreadyUpdatedData')
     .all(app.config.passport.authenticate())
     .get(app.components.customers.customerData.alreadyUpdatedData)
-  
+
   app
     .route('/changePasswordPanel')
     .all(app.config.passport.authenticate())
@@ -48,15 +48,15 @@ module.exports = app => {
   app
     .route('/fetchCustomerTickets')
     .all(app.config.passport.authenticate())
-    .get(app.components.ticket.index.getCustomerTickets)
+    .get(app.components.ticket.routeFunctions.getCustomerTickets)
   app
     .route('/fetchProductTickets')
     .all(app.config.passport.authenticate())
-    .get(app.components.ticket.index.getProductTickets)
+    .get(app.components.ticket.routeFunctions.getProductTickets)
   app
     .route('/payTicket')
     .all(app.config.passport.authenticate())
-    .get(app.components.ticket.index.payTicket)
+    .get(app.components.ticket.routeFunctions.payTicket)
 
   // CONFIG
   app
