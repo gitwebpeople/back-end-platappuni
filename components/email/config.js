@@ -19,11 +19,11 @@ const smtpTransport = nodemailer.createTransport({
 const handlebarsOptions = {
   viewEngine: {
     extName: 'handlebars',
-    partialsDir: path.resolve('../../templates/email/'),
-    layoutsDir: path.resolve('../../templates/email/partials'),
+    partialsDir: path.join(__dirname, '../../templates/email/'),
+    layoutsDir: path.join(__dirname, '../../templates/email/partials'),
     defaultLayout: 'template'
   },
-  viewPath: path.resolve('../../templates/email'),
+  viewPath: path.join(__dirname, '../../templates/email'),
   extName: '.html'
 }
 smtpTransport.use('compile', hbs(handlebarsOptions))

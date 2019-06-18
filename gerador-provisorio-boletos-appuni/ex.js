@@ -17,6 +17,6 @@ const emailData = {
 // console.log(template, sendMail)
 start()
 async function start () {
-  const re = sendMail(template, emailData)
+  const re = await sendMail(template, emailData)
   console.log(re)
 }
