@@ -1,31 +1,33 @@
 const path = require('path')
 const hbs = require('nodemailer-express-handlebars')
 
-const email = process.env.MAILER_EMAIL_ID || 'appuni-sys@appuni.net'
-const pass = process.env.MAILER_PASSWORD || 'H66d0qf!'
 const nodemailer = require('nodemailer')
 
-const smtpTransport = nodemailer.createTransport({
-  // service: process.env.MAILER_SERVICE_PROVIDER || "Gmail",
-  host: 'smarter-email-a.appuni.com.br',
-  port: 587,
-  secure: true,
-  auth: {
-    user: email,
-    pass: pass
+function config (emailConf, templatePath, templatePathPartials) {
+  const smtpTransport = nodemailer.createTransport({
+    // service: process.env.MAILER_SERVICE_PROVIDER || "Gmail",
+    host: emailConf.smtpServer,
+    port: emailConf.port,
+    secure: !!emailConf.ssl,
+    auth: {
+      user: emailConf.email,
+      pass: emailConf.pass
+    }
+  })
+
+  const handlebarsOptions = {
+    viewEngine: {
+      extName: 'handlebars',
+      partialsDir: templatePath,
+      layoutsDir: templatePathPartials,
+      defaultLayout: 'template'
+    },
+    viewPath: templatePath,
+    extName: '.html'
   }
-})
+  smtpTransport.use('compile', hbs(handlebarsOptions))
 
-const handlebarsOptions = {
-  viewEngine: {
-    extName: 'handlebars',
-    partialsDir: path.join(__dirname, '../../templates/email/'),
-    layoutsDir: path.join(__dirname, '../../templates/email/partials'),
-    defaultLayout: 'template'
-  },
-  viewPath: path.join(__dirname, '../../templates/email'),
-  extName: '.html'
+  return smtpTransport
 }
-smtpTransport.use('compile', hbs(handlebarsOptions))
 
-module.exports = smtpTransport
+module.exports = config

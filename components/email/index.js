@@ -1,6 +1,5 @@
-const smtpTransport = require('./config')
 
-module.exports = async function sendMail (template, emailData) {
+module.exports = async function sendMail (template, emailData, smtpTransport) {
   const data = {
     to: emailData.to,
     from: emailData.from,
