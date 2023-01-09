@@ -28,7 +28,7 @@
     "nodemailer-express-handlebars": "^3.0.0",
     "nodemon": "^1.18.11",
     "passport": "^0.4.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "pg": "^7.9.0"
   },
   "devDependencies": {
